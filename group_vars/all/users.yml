@@ -1,0 +1,8 @@
+---
+
+auth_keys_folder: ../files/authorized_keys
+
+user:
+  - name: deploy
+    state: present
+    groups: ['sudo']

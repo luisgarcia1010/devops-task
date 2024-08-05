@@ -1,0 +1,15 @@
+---
+
+- name: "Update apt cache"
+  apt:
+    name: 
+      - python3-apt
+      - python3-pip
+    update_cache: yes
+
+- name: "Install basic packages"
+  apt:
+    name: ['bc', 'vim', 'lsof', 'less', 'screen', 'dnsutils', 'apt-show-versions', 'apt-transport-https', 'sudo', 'cron', 'wget', 'curl', 'rsync', 'unzip', 'net-tools']
+    update_cache: yes
+    state: latest
+    force: yes

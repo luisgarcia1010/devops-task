@@ -1,0 +1,28 @@
+---
+
+- name: "Create directory {{ alertmanager_home }}"
+  file:
+   path: "{{ alertmanager_home }}"
+   state: directory
+
+- name: "Copy alertmanager config file"
+  template:
+   src: "alertmanager.yml.j2"
+   dest: "{{ alertmanager_home }}/alertmanager.yml"
+  notify: reload alertmanager
+
+- name: "Run {{ services.alertmanager.name }} docker instance"
+  docker_container:
+    name: "{{ services.alertmanager.name }}"
+    image: "prom/alertmanager:latest"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - "{{ alertmanager_home }}:/etc/alertmanager"

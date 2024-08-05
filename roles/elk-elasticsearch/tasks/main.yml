@@ -1,0 +1,48 @@
+---
+
+- name: "Set vm.max_map_count to 262144 in /etc/sysctl.conf"
+  sysctl:
+   name: vm.max_map_count
+   value: '262144'
+
+- name: "Create Elasticsearch data directories"
+  file:
+   path: "{{ item.volume.split(':')[0] }}"
+   state: directory
+   owner: "1000"
+   group: "1000"
+  loop: "{{ es_nodes }}"
+
+- name: "Create a Docker network for Elasticsearch cluster {{ docker.network.name }}"
+  docker_network:
+   name: "{{ docker.network.name }}"   
+
+- name: "Run Elasticsearch containers"
+  docker_container:
+   name: "{{ item.name }}"
+   image: "{{ elasticsearch_image }}"
+   state: started
+   restart_policy: unless-stopped
+   recreate: "{{ docker_recreate | default('no') }}"
+   pull: "{{ docker_pull | default('no') }}"
+   networks_cli_compatible: yes
+   network_mode: "{{ docker.network.name }}"
+   ports:
+    - "{{ item.ports[0] }}"
+    - "{{ item.ports[1] }}"
+   env:
+    discovery.seed_hosts: "elasticsearch1,elasticsearch2,elasticsearch3"
+    cluster.initial_master_nodes: "elasticsearch1,elasticsearch2,elasticsearch3"
+    cluster.name: "es-cluster"
+    node.name: "{{ item.name }}"
+    network.host: "0.0.0.0"
+    bootstrap.memory_lock: "true"
+    ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    xpack.security.enabled: "false"
+    cluster.routing.allocation.disk.threshold_enabled: "false"
+   volumes:
+    - "{{ item.volume }}"
+   ulimits:
+    - 'memlock:-1:-1'
+    - 'nofile:65536:65536'
+  loop: "{{ es_nodes }}"    

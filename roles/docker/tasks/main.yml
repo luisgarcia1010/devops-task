@@ -1,0 +1,35 @@
+---
+
+- name: "Install packages"
+  apt:
+   update_cache: yes
+   state: present
+   name:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - software-properties-common
+    - python3-docker
+
+- name: "Add Docker GPG apt Key"
+  ansible.builtin.apt_key:
+   url: https://download.docker.com/linux/debian/gpg
+   state: present
+
+- name: "Add repository into sources list"
+  ansible.builtin.apt_repository:
+   repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable
+   state: present
+   filename: docker
+
+- name: "Install Docker"
+  apt:
+   update_cache: yes
+   state: present
+   name: 
+    - docker-ce
+    - docker-ce-cli 
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin

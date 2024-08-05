@@ -1,0 +1,21 @@
+---
+
+- name: "Create certbot home directory"
+  file:
+   path: "/opt/{{ item }}"
+   state: directory
+   recurse: yes
+  loop:
+   - certbot/ssl
+
+- name: "Issue certificates for multiple domains"
+  include_tasks: issue_cert.yml
+  loop: "{{ certbot_domains.split(',') | map('trim') | list }}"
+  when: certbot_domains != '0'
+
+- name: "Create cron job for renew certificate"
+  cron:
+   name: "Renew certificate"
+   minute: "0"
+   hour: "10"
+   job: 'docker run --rm -it --name certbot -v /opt/certbot/ssl:/etc/letsencrypt -v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock certbot/certbot renew && docker kill -s HUP nginx_proxy'    

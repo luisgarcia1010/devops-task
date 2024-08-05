@@ -1,0 +1,33 @@
+---
+
+- name: "Update apt cache and install sudo"
+  apt:
+    name:
+      - sudo
+    update_cache: yes
+
+- name: Add user
+  user:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+    shell: "{{ item.shell | default('/bin/bash') }}"
+    groups: "{{ item.groups | default('sudo') }}"
+    append: "{{ item.append | default('yes') }}"
+  with_items: "{{ user }}"
+
+- name: Add user into sudoers
+  template:
+    src: sudo_nopasswd.j2
+    dest: "/etc/sudoers.d/{{ item.name }}"
+    mode: '0440'
+    owner: root
+    group: root
+  when: item.state == "present"
+  with_items: "{{ user }}"
+
+- name: Add public key for user
+  authorized_key:
+    user: "{{ item.name }}"
+    key: "{{ lookup('file', auth_keys_folder + '/' + item.name + '.pub') }}"
+  when: item.state == "present"
+  with_items: "{{ user }}"

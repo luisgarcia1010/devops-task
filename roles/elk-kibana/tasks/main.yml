@@ -1,0 +1,14 @@
+---
+
+- name: "Run {{ services.kibana.name }} container"
+  docker_container:
+   name: "{{ services.kibana.name }}"
+   image: "{{ kibana_image }}"
+   state: started
+   restart_policy: unless-stopped
+   recreate: "{{ docker_recreate | default('no') }}"
+   pull: "{{ docker_pull | default('no') }}"
+   networks_cli_compatible: yes
+   network_mode: "{{ docker.network.name }}"
+   env:
+    ELASTICSEARCH_HOSTS: "{{ elasticsearch_hosts | to_json | replace(' ', '') | string }}"

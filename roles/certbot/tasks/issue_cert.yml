@@ -1,0 +1,19 @@
+---
+
+- name: "Run certbot-{{ item }} docker instance"
+  docker_container:
+   name: "certbot-{{ item }}"
+   image: "certbot/certbot"
+   auto_remove: yes
+   state: started
+   recreate: "{{ docker_recreate | default('no') }}"
+   pull: "{{ docker_pull | default('no') }}"
+   networks_cli_compatible: yes
+   volumes:
+    - "/opt/certbot/ssl:/etc/letsencrypt"
+    - "{{ services.nginx.proxy.home_dir }}/letsencrypt.com:/letsencrypt.com"
+   command: certonly -v --agree-tos --preferred-chain 'ISRG Root X1' --webroot --register-unsafely-without-email -w /letsencrypt.com -d "{{ item }}"
+
+- name: "Pause for {{ certbot_delay }} seconds"
+  pause:
+   seconds: "{{ certbot_delay }}"

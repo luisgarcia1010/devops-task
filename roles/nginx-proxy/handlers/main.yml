@@ -1,0 +1,7 @@
+---
+
+- name: check nginx.conf from nginx_proxy
+  command: docker exec nginx_proxy nginx -t
+
+- name: reload nginx_proxy
+  command: docker kill -s HUP nginx_proxy

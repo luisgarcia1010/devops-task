@@ -1,0 +1,59 @@
+---
+
+- name: "Configure server"
+  hosts: devops
+  become: yes
+  remote_user: deploy
+
+  roles:
+   - role: common
+     tags: common
+   - role: docker
+     tags: docker
+   - role: nginx-proxy
+     tags: nginx-proxy
+   - role: certbot
+     tags: certbot
+   - role: nginx-web
+     tags: nginx-web
+   - role: elk-elasticsearch
+     tags: elk-elasticsearch
+   - role: elk-logstash
+     tags: elk-logstash
+   - role: elk-kibana
+     tags: elk-kibana
+   - role: elk-kibana-web
+     tags: elk-kibana-web
+   - role: prometheus
+     tags: prometheus
+   - role: node_exporter
+     tags: node_exporter
+   - role: alertmanager
+     tags: alertmanager
+   - role: grafana
+     tags: grafana
+   - role: prometheus-web
+     tags: prometheus-web
+   - role: grafana-web
+     tags: grafana-web
+   - role: mydaemon
+     tags: mydaemon
+  vars:
+    elasticsearch_image: "docker.elastic.co/elasticsearch/elasticsearch:7.14.0"
+    logstash_image: "docker.elastic.co/logstash/logstash:7.14.0"
+    kibana_image: "docker.elastic.co/kibana/kibana:7.14.0"
+    grafana_image: "grafana/grafana:11.1.3"
+    elasticsearch_hosts:
+     - "http://elasticsearch1:9200"
+     - "http://elasticsearch2:9200"
+    es_nodes:
+      - name: "elasticsearch1"
+        ports:
+          - "127.0.0.1:9200:9200"
+          - "127.0.0.1:9300:9300"
+        volume: "/opt/elasticsearch/es1/data:/usr/share/elasticsearch/data"
+      - name: "elasticsearch2"
+        ports:
+          - "127.0.0.1:9201:9200"
+          - "127.0.0.1:9301:9300"
+        volume: "/opt/elasticsearch/es2/data:/usr/share/elasticsearch/data"

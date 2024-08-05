@@ -1,0 +1,22 @@
+---
+
+- name: "Copy config file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.proxy.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - prometheus.conf
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy
+
+- name: "Copy htpasswd file"
+  template:
+    src: .htpasswd.j2
+    dest: "{{ services.nginx.proxy.home_dir }}/conf.d/.prometheus_htpasswd"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy

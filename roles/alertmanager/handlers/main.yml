@@ -1,0 +1,4 @@
+---
+
+- name: reload alertmanager
+  command: docker kill -s HUP {{ services.alertmanager.name }}  

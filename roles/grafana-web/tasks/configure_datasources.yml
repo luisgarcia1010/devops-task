@@ -1,0 +1,24 @@
+---
+
+- name: "Wait for Grafana to be available"
+  uri:
+    url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 20
+
+- name: "Create datasource"
+  community.grafana.grafana_datasource:
+    name: "{{ item | regex_replace(':.*', '') }}"
+    grafana_url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana_admin_password }}"
+    ds_type: prometheus
+    ds_url: "http://{{ item }}"
+    access: proxy
+    tls_skip_verify: true
+    uid: "{{ item | regex_replace(':.*', '') }}"
+  loop:
+    - "{{ services.prometheus.name }}:9090"

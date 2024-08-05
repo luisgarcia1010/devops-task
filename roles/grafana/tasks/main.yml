@@ -1,0 +1,24 @@
+---
+
+- name: "Create grafana home directory"
+  file:
+    path: "{{ grafana_home }}"
+    owner: "472"
+    group: "472"
+    state: directory
+
+- name: "Run {{ services.grafana.name }}"  
+  docker_container:
+    name: "{{ services.grafana.name }}"
+    image: "{{ grafana_image }}"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    env:
+     GF_SECURITY_ADMIN_USER: "admin"
+     GF_SECURITY_ADMIN_PASSWORD: '{{ grafana_admin_password }}'
+    volumes:
+      - "{{ grafana_home }}:/var/lib/grafana"

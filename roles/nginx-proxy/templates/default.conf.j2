@@ -1,0 +1,19 @@
+server {
+	listen 80 default_server;
+	server_name _;
+
+        location ~ ^/.well-known {
+		root /letsencrypt.com;
+        }
+        location / {
+                return 301 https://$host$request_uri;
+        }
+        location /nginx_status {
+            	stub_status on;
+		access_log off;
+            	allow 127.0.0.1;
+		allow 192.168.0.0/16; # docker network
+		allow 172.16.0.0/12; # docker network
+            	deny all;
+	}
+}

@@ -1,0 +1,65 @@
+---
+
+- name: "Create nginx home directory {{ services.nginx.web.home_dir }}"
+  file:
+   path: "{{ services.nginx.web.home_dir }}/{{ item }}"
+   state: directory
+   recurse: yes
+  loop:
+   - www
+   - conf.d
+
+- name: "Unarchive a file that is already on the remote machine"
+  ansible.builtin.unarchive:
+    src: https://github.com/themewagon/fruitables/archive/refs/tags/v1.0.0.zip
+    dest: "{{ services.nginx.web.home_dir }}/www/"
+    remote_src: yes
+
+- name: "Copy file with owner and permissions"
+  ansible.builtin.copy:
+    src: "{{ services.nginx.web.home_dir }}/www/fruitables-1.0.0/"
+    dest: "{{ services.nginx.web.home_dir }}/www/"
+    remote_src: yes
+
+- name: "Recursively remove directory"
+  ansible.builtin.file:
+    path: "{{ services.nginx.web.home_dir }}/www/fruitables-1.0.0"
+    state: absent
+
+- name: "Copy config proxy file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.proxy.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - devops_proxy.conf
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy
+
+- name: "Copy config web file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.web.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - devops_web.conf
+  notify:
+   - check nginx.conf from nginx_web
+   - reload nginx_web
+
+- name: "Create a docker network {{ docker.network.name }}"
+  docker_network:
+   name: "{{ docker.network.name }}"
+
+- name: "Run nginx web docker instance"
+  docker_container:
+    name: "nginx_web"
+    image: "nginx:alpine"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    volumes:
+      - "{{ services.nginx.web.home_dir }}/conf.d:/etc/nginx/conf.d:ro"
+      - "{{ services.nginx.web.home_dir }}/www:/var/www/devops"

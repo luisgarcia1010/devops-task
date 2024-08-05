@@ -1,0 +1,4 @@
+---
+
+- name: reload prometheus
+  command: docker kill -s HUP {{ services.prometheus.name }}

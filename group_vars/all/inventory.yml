@@ -1,0 +1,25 @@
+---
+
+services:
+  grafana:
+    name: "grafana"
+  nginx:
+    name: "nginx"
+    envs:
+      domain: "example.com"
+    proxy:
+      home_dir: "/opt/nginx_proxy"
+    web:
+      home_dir: "/opt/nginx_web"
+    ssl:
+      dir: "/etc/nginx/ssl/live"
+  prometheus:
+    name: "prometheus"
+  alertmanager:
+    name: "alertmanager"
+  node_exporter:
+    name: "node_exporter"
+  kibana:
+    name: "kibana"
+  logstash:
+    name: "logstash"

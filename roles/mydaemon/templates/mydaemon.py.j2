@@ -1,0 +1,23 @@
+import time
+import os
+
+def get_system_load():
+    load1, load5, load15 = os.getloadavg()
+    return f"1 min load: {load1}, 5 min load: {load5}, 15 min load: {load15}"
+
+def get_nginx_status():
+    try:
+        response = os.popen('curl -s http://nginx_proxy/nginx_status').read()
+        return f"nginx status:\n{response}"
+    except Exception as e:
+        return f"Failed to get nginx status: {e}"
+
+if __name__ == "__main__":
+    log_file = "/var/log/mydaemon.log"
+    while True:
+        with open(log_file, "a") as f:
+            f.write(f"{time.ctime()}\n")
+            f.write(get_system_load() + "\n")
+            f.write(get_nginx_status() + "\n")
+            f.write("="*40 + "\n")
+        time.sleep(60)

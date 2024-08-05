@@ -1,0 +1,47 @@
+---
+
+- name: "Create directory for logstash files"
+  file:
+   dest: "{{ logstash_home }}/{{ item }}"
+   state: directory
+   owner: "1000"
+   group: "1000"
+  loop:
+   - config
+   - pipeline
+
+- name: "Template pipelines.yml"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ logstash_home }}/pipeline/{{ item }}"
+   owner: "1000"
+   group: "1000"
+  loop:
+   - pipelines.yml
+ 
+- name: "Template logstash.yml"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ logstash_home }}/config/{{ item }}"
+   owner: "1000"
+   group: "1000"
+  loop:
+   - logstash.yml
+
+- name: "Run {{ services.logstash.name }} container"
+  docker_container:
+   name: "{{ services.logstash.name }}"
+   image: "{{ logstash_image }}"
+   state: started
+   restart_policy: unless-stopped
+   recreate: "{{ docker_recreate | default('no') }}"
+   pull: "{{ docker_pull | default('no') }}"
+   networks_cli_compatible: yes
+   network_mode: "{{ docker.network.name }}"
+   ports: 
+    - "127.0.0.1:5044:5044"
+   env:
+    xpack.monitoring.elasticsearch.hosts: "{{ elasticsearch_hosts | to_json | replace(' ', '') | string }}"
+   volumes:
+    - "{{ logstash_home }}/config/logstash.yml:/usr/share/logstash/config/logstash.yml"
+    - "{{ logstash_home }}/pipeline:/usr/share/logstash/pipeline"

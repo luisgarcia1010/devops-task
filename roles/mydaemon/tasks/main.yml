@@ -1,0 +1,48 @@
+---
+
+- name: Create directory for mydaemon
+  file:
+   path: "{{ item }}"
+   state: directory
+   mode: '0755'
+  loop:
+   - /var/log/mydaemon
+   - /opt/mydaemon
+
+- name: Copy mydaemon file to target host
+  template:
+   src: "{{ item }}.j2"
+   dest: "/opt/mydaemon/{{ item }}"
+   mode: '0755'
+  loop:
+   - mydaemon.py
+   - run
+
+- name: generate dockerfile
+  template:
+   src: "Dockerfile.j2"
+   dest: "/opt/mydaemon/Dockerfile"
+
+- name: build mydaemon image
+  docker_image:
+   name: "mydaemon"
+   tag: "latest"
+   source: build
+   state: present
+   force_source: true
+   build:
+    path: "/opt/mydaemon"
+    pull: yes     
+
+- name: "Run mydaemon Docker container"
+  docker_container:
+   name: mydaemon
+   image: mydaemon:latest
+   state: started
+   restart_policy: unless-stopped
+   recreate: "{{ docker_recreate | default('no') }}"
+   pull: "{{ docker_pull | default('no') }}"
+   networks_cli_compatible: yes
+   network_mode: "{{ docker.network.name }}"
+   volumes:
+    - /var/log/mydaemon:/var/log

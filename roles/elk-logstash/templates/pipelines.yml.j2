@@ -1,0 +1,12 @@
+input {
+  beats {
+    port => 5044
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => {{ elasticsearch_hosts | to_json | replace(' ', '') | string }}
+    index => "logstash-%{+YYYY.MM.dd}"
+  }
+}

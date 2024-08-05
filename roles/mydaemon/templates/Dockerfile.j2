@@ -1,0 +1,11 @@
+FROM python:3.9-slim
+
+RUN apt-get update && apt-get install -y curl runit
+
+WORKDIR /usr/src/app
+
+COPY mydaemon.py .
+RUN chmod +x mydaemon.py && mkdir -p /service/mydaemon
+COPY run /service/mydaemon/run
+RUN chmod +x /service/mydaemon/run
+CMD ["runsvdir", "/service"]

@@ -1,0 +1,43 @@
+---
+
+- name: "Create directory prometheus"
+  file:
+   path: "{{ prometheus_home }}/{{ item }}"
+   state: directory
+   owner: "65534"
+   group: "65534"
+   recurse: yes
+  loop:
+   - data
+   - conf
+
+- name: "Copy prometheus config file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ prometheus_home }}/conf/{{ item }}"
+   owner: "65534"
+   group: "65534"
+  loop:
+   - prometheus.yml
+   - alerts.yml
+  notify: reload prometheus   
+
+- name: "Run {{ services.prometheus.name }} docker instance"
+  docker_container:
+    name: "{{ services.prometheus.name }}"
+    image: "prom/prometheus:latest"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.external-url=https://{{ services.prometheus.name }}.{{ services.nginx.envs.domain }}'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - "{{ prometheus_home }}/conf/:/etc/prometheus/"
+      - "{{ prometheus_home }}/data:/prometheus"

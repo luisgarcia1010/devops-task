@@ -1,0 +1,17 @@
+---
+
+- name: "Wait for Grafana to be available"
+  uri:
+    url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}/login"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 20
+
+- name: "Import Grafana dashboard {{ services.node_exporter.name }}"
+  community.grafana.grafana_dashboard:
+    grafana_url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}"
+    grafana_user: "admin"
+    grafana_password: "{{ grafana_admin_password }}"
+    dashboard_url: https://grafana.com/api/dashboards/1860/revisions/37/download

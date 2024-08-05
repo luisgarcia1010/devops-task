@@ -1,0 +1,18 @@
+---
+
+- name: "Run {{ services.node_exporter.name }} docker instance"
+  docker_container:
+    name: "{{ services.node_exporter.name }}"
+    image: "quay.io/prometheus/node-exporter:latest"
+    user: root
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    pid_mode: host
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - "/:/host:ro,rslave"

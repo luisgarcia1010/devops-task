@@ -1,0 +1,20 @@
+---
+
+- name: "Copy config file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.proxy.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - grafana.conf
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy
+
+- meta: flush_handlers     
+
+- name: "Configure Grafana datasources"
+  include_tasks: configure_datasources.yml
+
+- name: "Import Grafana dashboards"
+  include_tasks: import_dashboard.yml
+ 

@@ -1,0 +1,42 @@
+---
+
+- name: "Create nginx home directory"
+  file:
+   path: "{{ services.nginx.proxy.home_dir }}/{{ item }}"
+   state: directory
+   recurse: yes
+  loop:
+   - conf.d
+   - letsencrypt.com
+
+- name: "Copy config file"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.proxy.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - default.conf
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy
+
+- name: "Create a docker network {{ docker.network.name }}"
+  docker_network:
+   name: "{{ docker.network.name }}"     
+
+- name: "Run nginx proxy docker instance"
+  docker_container:
+    name: "nginx_proxy"
+    image: "nginx:alpine"
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ docker_recreate | default('no') }}"
+    pull: "{{ docker_pull | default('no') }}"
+    networks_cli_compatible: yes
+    network_mode: "{{ docker.network.name }}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "{{ services.nginx.proxy.home_dir }}/conf.d:/etc/nginx/conf.d:ro"
+      - "{{ services.nginx.proxy.home_dir }}/letsencrypt.com:/letsencrypt.com"
+      - "/opt/certbot/ssl:/etc/nginx/ssl"

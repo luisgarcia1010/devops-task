@@ -1,0 +1,11 @@
+---
+
+- name: "Create/configure user"
+  hosts: devops
+  become: yes
+  vars:
+    ansible_become_method: su
+
+  roles:
+   - role: create_user
+     tags: create_user

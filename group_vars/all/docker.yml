@@ -1,0 +1,5 @@
+---
+
+docker:
+  network:
+    name: "infra-net"
