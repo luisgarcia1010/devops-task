@@ -4,6 +4,7 @@
   uri:
     url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}/login"
     status_code: 200
+    validate_certs: false
   register: result
   until: result.status == 200
   retries: 30
@@ -19,6 +20,7 @@
     ds_url: "http://{{ item }}"
     access: proxy
     tls_skip_verify: true
+    validate_certs: false
     uid: "{{ item | regex_replace(':.*', '') }}"
   loop:
     - "{{ services.prometheus.name }}:9090"

@@ -1,0 +1,26 @@
+upstream kibana {
+        server {{ services.kibana.name }}:5601;
+}
+
+server {
+        listen 443 ssl;
+        server_name {{ services.kibana.name }}.{{ services.nginx.envs.domain }};
+
+	ssl_certificate {{ services.nginx.self_signed.dir }}/{{ services.kibana.name }}.{{ services.nginx.envs.domain }}.crt;
+        ssl_certificate_key {{ services.nginx.self_signed.dir }}/{{ services.kibana.name }}.{{ services.nginx.envs.domain }}.key;
+
+        auth_basic           "Kibana";
+        auth_basic_user_file /etc/nginx/conf.d/.kibana_htpasswd;
+
+        location / {
+                proxy_pass http://kibana;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Real-IP $remote_addr;
+
+                proxy_buffer_size          128k;
+                proxy_buffers              4 256k;
+                proxy_busy_buffers_size    256k;
+        }
+}

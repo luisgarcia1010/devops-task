@@ -1,4 +1,6 @@
 ---
 
 certbot_domains: ""
+certbot_domains_self_signed: ""
 certbot_delay: 15
+ssl_self_signed_dir: /opt/certbot/ssl/self-signed

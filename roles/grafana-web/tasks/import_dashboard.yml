@@ -4,6 +4,7 @@
   uri:
     url: "https://{{ services.grafana.name }}.{{ services.nginx.envs.domain }}/login"
     status_code: 200
+    validate_certs: false
   register: result
   until: result.status == 200
   retries: 30
@@ -15,3 +16,4 @@
     grafana_user: "admin"
     grafana_password: "{{ grafana_admin_password }}"
     dashboard_url: https://grafana.com/api/dashboards/1860/revisions/37/download
+    validate_certs: false

@@ -13,6 +13,8 @@ services:
       home_dir: "/opt/nginx_web"
     ssl:
       dir: "/etc/nginx/ssl/live"
+    self_signed:
+      dir: "/etc/nginx/ssl/self-signed"
   prometheus:
     name: "prometheus"
   alertmanager:

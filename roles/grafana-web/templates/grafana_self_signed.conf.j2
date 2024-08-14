@@ -1,0 +1,19 @@
+upstream grafana {
+        server {{ services.grafana.name }}:3000;
+}
+
+server {
+        listen 443 ssl;
+        server_name {{ services.grafana.name }}.{{ services.nginx.envs.domain }};
+
+	ssl_certificate {{ services.nginx.self_signed.dir }}/{{ services.grafana.name }}.{{ services.nginx.envs.domain }}.crt;
+        ssl_certificate_key {{ services.nginx.self_signed.dir }}/{{ services.grafana.name }}.{{ services.nginx.envs.domain }}.key;
+
+        location / {
+                proxy_pass http://grafana;
+                proxy_redirect off;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Real-IP $remote_addr;
+        }
+}

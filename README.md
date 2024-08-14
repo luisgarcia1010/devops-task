@@ -20,6 +20,7 @@ The repository is designed to work with the following domain names, for which SS
    - kibana
    - grafana
    - prometheus
+
    Or add a wildcard record `*.example.com`.
 
 2. **Configuration:**
@@ -72,6 +73,17 @@ Or combine tags:
 ```sh
 ansible-playbook -i hosts playbook/devops.yml -e "certbot_domains=grafana.example.com" --tags common,docker,nginx-proxy,certbot,prometheus,prometheus-web
 ```
+
+### Testing on Non-Resolvable Domains
+
+If you are testing on domains that are not resolvable through DNS, you can use self-signed certificates by running the following playbook:
+
+```sh
+ansible-playbook -i hosts playbook/devops.yml -e "certbot_domains_self_signed=domain.tld,kibana.domain.tld,grafana.domain.tld,prometheus.domain.tld"
+```
+
+This playbook will generate self-signed certificates and update /etc/hosts with the corresponding IP and domain mappings.
+
 Additional Information
 * Ensure that the certbot role is run before running the nginx-web, elk-kibana-web, prometheus-web, and grafana-web roles to issue SSL certificates for the specified domains.
 * The provided configurations and playbooks are designed to be flexible and can be customized as per your requirements.

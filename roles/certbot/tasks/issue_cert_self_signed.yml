@@ -1,0 +1,32 @@
+---
+
+- name: "Generate private key"
+  openssl_privatekey:
+   path: "{{ ssl_self_signed_dir }}/{{ item }}.key"
+   size: 2048
+  register: private_keys
+
+- name: "Generate CSR (Certificate Signing Request)"
+  openssl_csr:
+   path: "{{ ssl_self_signed_dir }}/{{ item }}.csr"
+   privatekey_path: "{{ ssl_self_signed_dir }}/{{ item }}.key"
+   common_name: "{{ item }}"
+  register: csrs
+
+- name: "Generate self-signed certificate"
+  openssl_certificate:
+   path: "{{ ssl_self_signed_dir }}/{{ item }}.crt"
+   privatekey_path: "{{ ssl_self_signed_dir }}/{{ item }}.key"
+   csr_path: "{{ ssl_self_signed_dir }}/{{ item }}.csr"
+   provider: selfsigned
+  register: certificates
+
+- name: Display generated certificates
+  debug:
+   msg: "Generated certificate for {{ item }}"
+
+- name: "Add IP and domains to /etc/hosts"
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ item }}"
+    state: present

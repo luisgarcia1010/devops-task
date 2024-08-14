@@ -6,12 +6,17 @@
    state: directory
    recurse: yes
   loop:
-   - certbot/ssl
+   - certbot/ssl/self-signed
 
 - name: "Issue certificates for multiple domains"
   include_tasks: issue_cert.yml
   loop: "{{ certbot_domains.split(',') | map('trim') | list }}"
-  when: certbot_domains != '0'
+  when: certbot_domains | length > 0
+
+- name: "Issue certificates for self-signed multiple domains"
+  include_tasks: issue_cert_self_signed.yml
+  loop: "{{ certbot_domains_self_signed.split(',') | map('trim') | list }}"
+  when: certbot_domains_self_signed | length > 0
 
 - name: "Create cron job for renew certificate"
   cron:
@@ -19,3 +24,4 @@
    minute: "0"
    hour: "10"
    job: 'docker run --rm -it --name certbot -v /opt/certbot/ssl:/etc/letsencrypt -v /usr/bin/docker:/usr/bin/docker -v /var/run/docker.sock:/var/run/docker.sock certbot/certbot renew && docker kill -s HUP nginx_proxy'    
+  when: certbot_domains | length > 0

@@ -35,6 +35,18 @@
   notify:
    - check nginx.conf from nginx_proxy
    - reload nginx_proxy
+  when: certbot_domains | length > 0
+
+- name: "Copy config proxy file for ssl self signed"
+  template:
+   src: "{{ item }}.j2"
+   dest: "{{ services.nginx.proxy.home_dir }}/conf.d/{{ item }}"
+  loop:
+   - devops_proxy_self_signed.conf
+  notify:
+   - check nginx.conf from nginx_proxy
+   - reload nginx_proxy
+  when: certbot_domains_self_signed | length > 0
 
 - name: "Copy config web file"
   template:
